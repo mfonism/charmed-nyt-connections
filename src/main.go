@@ -73,9 +73,15 @@ func (m Model) View() string {
 		BorderRow(true).
 		BorderColumn(true).
 		Rows(m.board...).
-		StyleFunc(func(row, col int) lipgloss.Style {
-			return lipgloss.NewStyle().Padding(0, 1)
-		})
+		StyleFunc(
+			func(row, col int) lipgloss.Style {
+				return lipgloss.NewStyle().
+					Height(3).
+					Width(12).
+					Align(lipgloss.Center).
+					Padding(1)
+			},
+		)
 
 	return t.Render()
 }

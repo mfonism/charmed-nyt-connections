@@ -1,98 +1,74 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 )
 
-type model struct {
-	board board
+func main() {
+	program := tea.NewProgram(initialModel())
+	if _, err := program.Run(); err != nil {
+		fmt.Printf("Whoops, something went wrong: %v", err)
+		os.Exit(1)
+	}
 }
 
-type board struct {
-	unsolved []tile
-	selected []tile
+type Model struct {
+	board [][]string
 }
 
-type tile struct {
-	word  string
-	group int
-}
-
-func initialModel() model {
-	return model{
-		board: board{
-			unsolved: []tile{
-				{
-					word:  "Red",
-					group: 1,
-				},
-				{
-					word:  "Green",
-					group: 1,
-				},
-				{
-					word:  "Blue",
-					group: 1,
-				},
-				{
-					word:  "Yellow",
-					group: 1,
-				},
-				{
-					word:  "Cat",
-					group: 2,
-				},
-				{
-					word:  "Dog",
-					group: 2,
-				},
-				{
-					word:  "Hamster",
-					group: 2,
-				},
-				{
-					word:  "Fish",
-					group: 2,
-				},
-				{
-					word:  "Ghana",
-					group: 3,
-				},
-				{
-					word:  "Namibia",
-					group: 3,
-				},
-				{
-					word:  "Morocco",
-					group: 3,
-				},
-				{
-					word:  "Ethiopia",
-					group: 3,
-				},
-				{
-					word:  "Mercedes",
-					group: 4,
-				},
-				{
-					word:  "Kia",
-					group: 4,
-				},
-				{
-					word:  "Toyota",
-					group: 4,
-				},
-				{
-					word:  "Ford",
-					group: 4,
-				},
+func initialModel() Model {
+	return Model{
+		board: [][]string{
+			{
+				"Roc",
+				"Ruby",
+				"Crystal",
+				"Python",
 			},
-			selected: []tile{},
+			{
+				"Rails",
+				"Django",
+				"Phoenix",
+				"Servant",
+			},
+			{
+				"Elm",
+				"Haskell",
+				"Agda",
+				"Miranda",
+			},
+			{
+				"Zen",
+				"Quokka",
+				"Raven",
+				"Kraken",
+			},
 		},
 	}
 }
 
-func (m model) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return nil
 }
 
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return m, nil
+}
+
+func (m Model) View() string {
+	t := table.New().
+		Border(lipgloss.NormalBorder()).
+		BorderRow(true).
+		BorderColumn(true).
+		Rows(m.board...).
+		StyleFunc(func(row, col int) lipgloss.Style {
+			return lipgloss.NewStyle().Padding(0, 1)
+		})
+
+	return t.Render()
+}

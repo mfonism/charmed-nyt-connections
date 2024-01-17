@@ -8,7 +8,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
 	zone "github.com/lrstanley/bubblezone"
 )
 
@@ -109,42 +108,16 @@ func (m Model) View() string {
 		Align(lipgloss.Center).
 		Padding(1)
 
-	t := table.New().
-		Border(lipgloss.NormalBorder()).
-		BorderRow(true).
-		BorderColumn(true).
-		Rows(m.readyRows()...).
-		StyleFunc(m.cellStyleFunc(cellBaseStyle))
-
-	return zone.Scan(t.Render())
-}
-
-func (m Model) cellStyleFunc(baseStyle lipgloss.Style) table.StyleFunc {
-	return func(rowIndex, colIndex int) lipgloss.Style {
-		cellData := m.board[rowIndex-1][colIndex]
-
-		if _, isSelected := m.selectedTiles[cellData]; isSelected {
-			return baseStyle.
-				Copy().
-				Background(lipgloss.Color("000000")).
-				Foreground(lipgloss.Color("FFFFFF"))
+	readyBoard := make([]string, len(m.board))
+	for rowIndex, row := range m.board{
+		readyRow := make([]string, len(row))
+		for cellIndex, cellData := range row {
+			readyRow[cellIndex] = zone.Mark(cellData, cellBaseStyle.Copy().Render(cellData))
+			_ = rowIndex
 		}
 
-		return baseStyle
-	}
-}
-
-func (m Model) readyRows() [][]string {
-	res := make([][]string, len(m.board))
-
-	for rowIndex, row := range m.board {
-		readyRow := make([]string, 4)
-		for colIndex, cellData := range row {
-			readyRow[colIndex] = zone.Mark(cellData, cellData)
-		}
-
-		res[rowIndex] = readyRow
+		readyBoard[rowIndex] = lipgloss.JoinHorizontal(lipgloss.Center, readyRow...)
 	}
 
-	return res
+	return zone.Scan(lipgloss.JoinVertical(lipgloss.Center, readyBoard...))
 }

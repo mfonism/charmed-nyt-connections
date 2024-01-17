@@ -11,6 +11,15 @@ import (
 	zone "github.com/lrstanley/bubblezone"
 )
 
+var (
+	black                  = lipgloss.Color("#000000")
+	mutedBlack             = lipgloss.Color("#161616")
+	white                  = lipgloss.Color("#FFFFFF")
+	mutedWhite             = lipgloss.Color("#E0E0E0")
+	selectedCellBackground = lipgloss.Color("#A9A9A9")
+	selectedCellForeground = lipgloss.Color("#DCDCDC")
+)
+
 func main() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -109,11 +118,22 @@ func (m Model) View() string {
 		Padding(1)
 
 	readyBoard := make([]string, len(m.board))
-	for rowIndex, row := range m.board{
+
+	for rowIndex, row := range m.board {
 		readyRow := make([]string, len(row))
 		for cellIndex, cellData := range row {
-			readyRow[cellIndex] = zone.Mark(cellData, cellBaseStyle.Copy().Render(cellData))
-			_ = rowIndex
+			var cellStyle lipgloss.Style
+			if _, isSelected := m.selectedTiles[cellData]; isSelected {
+				cellStyle = cellBaseStyle.Copy().
+					Background(mutedWhite).
+					Foreground(mutedBlack)
+			} else {
+				cellStyle = cellBaseStyle.Copy().
+					Background(mutedBlack).
+					Foreground(mutedWhite)
+			}
+
+			readyRow[cellIndex] = zone.Mark(cellData, cellStyle.Render(cellData))
 		}
 
 		readyBoard[rowIndex] = lipgloss.JoinHorizontal(lipgloss.Center, readyRow...)

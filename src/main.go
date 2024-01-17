@@ -114,8 +114,7 @@ func (m Model) View() string {
 	cellBaseStyle := lipgloss.NewStyle().
 		Height(3).
 		Width(12).
-		Align(lipgloss.Center).
-		Padding(1)
+		Align(lipgloss.Center, lipgloss.Center)
 
 	readyBoard := make([]string, len(m.board))
 

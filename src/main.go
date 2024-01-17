@@ -113,7 +113,7 @@ func (m Model) View() string {
 		Border(lipgloss.NormalBorder()).
 		BorderRow(true).
 		BorderColumn(true).
-		Rows(m.renderingReadyRows()...).
+		Rows(m.readyRows()...).
 		StyleFunc(m.cellStyleFunc(cellBaseStyle))
 
 	return zone.Scan(t.Render())
@@ -134,8 +134,8 @@ func (m Model) cellStyleFunc(baseStyle lipgloss.Style) table.StyleFunc {
 	}
 }
 
-func (m Model) renderingReadyRows() [][]string {
-	ret := make([][]string, len(m.board))
+func (m Model) readyRows() [][]string {
+	res := make([][]string, len(m.board))
 
 	for rowIndex, row := range m.board {
 		readyRow := make([]string, 4)
@@ -143,8 +143,8 @@ func (m Model) renderingReadyRows() [][]string {
 			readyRow[colIndex] = zone.Mark(cellData, cellData)
 		}
 
-		ret[rowIndex] = readyRow
+		res[rowIndex] = readyRow
 	}
 
-	return ret
+	return res
 }

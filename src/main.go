@@ -18,6 +18,10 @@ var (
 	mutedWhite             = lipgloss.Color("#E0E0E0")
 	selectedCellBackground = lipgloss.Color("#A9A9A9")
 	selectedCellForeground = lipgloss.Color("#DCDCDC")
+
+	shuffleButtonCopy     = "Shuffle"
+	deselectAllButtonCopy = "Deselect All"
+	submitButtonCopy      = "Submit"
 )
 
 func main() {
@@ -39,8 +43,9 @@ func main() {
 }
 
 type Model struct {
-	board         [][]string
-	selectedTiles map[string]struct{}
+	board             [][]string
+	selectedTiles     map[string]struct{}
+	mistakesRemaining int
 }
 
 func initialModel() Model {
@@ -71,6 +76,7 @@ func initialModel() Model {
 				"Kraken",
 			},
 		},
+		mistakesRemaining: 4,
 	}
 }
 
@@ -113,6 +119,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	return zone.Scan(
+		lipgloss.JoinVertical(
+			lipgloss.Center,
+			m.viewHeader(),
+			m.viewBoard(),
+			m.viewMistakesRemaining(),
+			m.viewActions(),
+		),
+	)
+}
+
+func (m Model) viewHeader() string {
+	return lipgloss.NewStyle().
+		Padding(1, 0).
+		Render("Create four groups of four!")
+}
+
+func (m Model) viewBoard() string {
 	cellBaseStyle := lipgloss.NewStyle().
 		Height(3).
 		Width(12).
@@ -140,5 +164,37 @@ func (m Model) View() string {
 		readyBoard[rowIndex] = lipgloss.JoinHorizontal(lipgloss.Center, readyRow...)
 	}
 
-	return zone.Scan(lipgloss.JoinVertical(lipgloss.Center, readyBoard...))
+	return lipgloss.JoinVertical(lipgloss.Center, readyBoard...)
+}
+
+func (m Model) viewMistakesRemaining() string {
+	return lipgloss.NewStyle().
+		Padding(1, 0).
+		Render(fmt.Sprintf("Mistakes remaining: %d", m.mistakesRemaining))
+}
+
+func (m Model) viewActions() string {
+	buttonBaseStyle := lipgloss.NewStyle().
+		Width(14).
+		Align(lipgloss.Center, lipgloss.Center).
+		Foreground(mutedWhite).
+		Border(lipgloss.NormalBorder(), true).
+		BorderForeground(mutedWhite)
+
+	shuffleButton := zone.Mark(
+		shuffleButtonCopy,
+		buttonBaseStyle.Copy().Render(shuffleButtonCopy),
+	)
+
+	deselectAllButton := zone.Mark(
+		deselectAllButtonCopy,
+		buttonBaseStyle.Copy().Render(deselectAllButtonCopy),
+	)
+
+	submitButton := zone.Mark(
+		shuffleButtonCopy,
+		buttonBaseStyle.Copy().Render(submitButtonCopy),
+	)
+
+	return lipgloss.JoinHorizontal(lipgloss.Center, shuffleButton, deselectAllButton, submitButton)
 }

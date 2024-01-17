@@ -96,7 +96,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.selectedTiles = make(map[string]struct{})
 						}
 
-						if len(m.selectedTiles) <= 3 {
+						if _, isAlreadySelected := m.selectedTiles[cellData]; isAlreadySelected {
+							delete(m.selectedTiles, cellData)
+						} else if len(m.selectedTiles) < 4 {
 							m.selectedTiles[cellData] = struct{}{}
 						}
 					}

@@ -105,11 +105,14 @@ func initialModel() Model {
 		}
 	}
 
-	return Model{
+	m := Model{
 		wordGroups:        wordGroups,
 		board:             board,
 		mistakesRemaining: 4,
 	}
+	m.shuffleBoard()
+
+	return m
 }
 
 func (m Model) Init() tea.Cmd {

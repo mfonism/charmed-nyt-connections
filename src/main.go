@@ -46,83 +46,68 @@ func main() {
 }
 
 type Model struct {
+	wordGroups        []WordGroup
 	board             [][]string
-	groups            []Group
 	selectedTiles     map[string]struct{}
 	mistakesRemaining int
 }
 
-type Group struct {
+type WordGroup struct {
 	clue    string
 	members map[string]struct{}
 }
 
 func initialModel() Model {
+	wordGroups := []WordGroup{
+		{
+			clue: "Multi-paradigm programming languages.",
+			members: map[string]struct{}{
+				"Julia":   {},
+				"Ruby":    {},
+				"Crystal": {},
+				"Python":  {},
+			},
+		},
+		{
+			clue: "Web development frameworks.",
+			members: map[string]struct{}{
+				"Rails":   {},
+				"Django":  {},
+				"Phoenix": {},
+				"Servant": {},
+			},
+		},
+		{
+			clue: "Statically-typed, pure-FP languages.",
+			members: map[string]struct{}{
+				"Elm":     {},
+				"Haskell": {},
+				"Idris":   {},
+				"Miranda": {},
+			},
+		},
+		{
+			clue: "NRI ENG teams.",
+			members: map[string]struct{}{
+				"Zen":    {},
+				"Quokka": {},
+				"Raven":  {},
+				"Kraken": {},
+			},
+		},
+	}
+
+	board := make([][]string, len(wordGroups))
+	for groupIndex, group := range wordGroups {
+		board[groupIndex] = make([]string, 0, len(group.members))
+		for word := range group.members {
+			board[groupIndex] = append(board[groupIndex], word)
+		}
+	}
+
 	return Model{
-		board: [][]string{
-			{
-				"Julia",
-				"Ruby",
-				"Crystal",
-				"Python",
-			},
-			{
-				"Rails",
-				"Django",
-				"Phoenix",
-				"Servant",
-			},
-			{
-				"Elm",
-				"Haskell",
-				"Idris",
-				"Miranda",
-			},
-			{
-				"Zen",
-				"Quokka",
-				"Raven",
-				"Kraken",
-			},
-		},
-		groups: []Group{
-			{
-				clue: "Multi-paradigm programming languages.",
-				members: map[string]struct{}{
-					"Julia":   {},
-					"Ruby":    {},
-					"Crystal": {},
-					"Python":  {},
-				},
-			},
-			{
-				clue: "Web development frameworks.",
-				members: map[string]struct{}{
-					"Rails":   {},
-					"Django":  {},
-					"Phoenix": {},
-					"Servant": {},
-				},
-			},
-			{
-				clue: "Statically-typed, pure-FP languages.",
-				members: map[string]struct{}{
-					"Elm":     {},
-					"Haskell": {},
-					"Idris":   {},
-					"Miranda": {},
-				},
-			},
-			{
-				clue: "NRI ENG teams.",
-				members: map[string]struct{}{
-					"Zen":    {},
-					"Quokka": {},
-					"Raven":  {},
-					"Kraken": {},
-				},
-			},
-		},
+		wordGroups:        wordGroups,
+		board:             board,
 		mistakesRemaining: 4,
 	}
 }

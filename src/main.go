@@ -14,6 +14,7 @@ import (
 var (
 	black                  = lipgloss.Color("#000000")
 	mutedBlack             = lipgloss.Color("#161616")
+	lighterBlack           = lipgloss.Color("#202020")
 	white                  = lipgloss.Color("#FFFFFF")
 	mutedWhite             = lipgloss.Color("#E0E0E0")
 	selectedCellBackground = lipgloss.Color("#A9A9A9")
@@ -120,42 +121,58 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	return zone.Scan(
-		lipgloss.JoinVertical(
-			lipgloss.Center,
-			m.viewHeader(),
-			m.viewBoard(),
-			m.viewMistakesRemaining(),
-			m.viewActions(),
-		),
+		lipgloss.NewStyle().
+			Padding(2, 6, 2).
+			Background(lighterBlack).
+			Render(
+				lipgloss.JoinVertical(
+					lipgloss.Center,
+					m.viewHeader(),
+					m.viewBoard(),
+					m.viewMistakesRemaining(),
+					m.viewActions(),
+				),
+			),
 	)
 }
 
 func (m Model) viewHeader() string {
 	return lipgloss.NewStyle().
-		Padding(1, 0).
+		Margin(1, 0, 2).
 		Render("Create four groups of four!")
 }
 
 func (m Model) viewBoard() string {
 	cellBaseStyle := lipgloss.NewStyle().
 		Height(3).
-		Width(12).
+		Width(14).
+		MarginBackground(lighterBlack).
 		Align(lipgloss.Center, lipgloss.Center)
+
+	cellMarginTopVal := 1
+	cellMarginLeftVal := 2
 
 	readyBoard := make([]string, len(m.board))
 
 	for rowIndex, row := range m.board {
 		readyRow := make([]string, len(row))
 		for cellIndex, cellData := range row {
-			var cellStyle lipgloss.Style
+
+			cellStyle := cellBaseStyle.Copy()
+			// every cell that's not on the topmost row should have a top margin
+			if rowIndex != 0 {
+				cellStyle.MarginTop(cellMarginTopVal)
+			}
+
+			// every cell that's not on the leftmost column should have a left margin
+			if cellIndex != 0 {
+				cellStyle.MarginLeft(cellMarginLeftVal)
+			}
+
 			if _, isSelected := m.selectedTiles[cellData]; isSelected {
-				cellStyle = cellBaseStyle.Copy().
-					Background(mutedWhite).
-					Foreground(mutedBlack)
+				cellStyle.Background(mutedWhite).Foreground(mutedBlack)
 			} else {
-				cellStyle = cellBaseStyle.Copy().
-					Background(mutedBlack).
-					Foreground(mutedWhite)
+				cellStyle.Background(mutedBlack).Foreground(mutedWhite)
 			}
 
 			readyRow[cellIndex] = zone.Mark(cellData, cellStyle.Render(cellData))
@@ -169,7 +186,7 @@ func (m Model) viewBoard() string {
 
 func (m Model) viewMistakesRemaining() string {
 	return lipgloss.NewStyle().
-		Padding(1, 0).
+		Margin(2, 0).
 		Render(fmt.Sprintf("Mistakes remaining: %d", m.mistakesRemaining))
 }
 
@@ -177,9 +194,11 @@ func (m Model) viewActions() string {
 	buttonBaseStyle := lipgloss.NewStyle().
 		Width(14).
 		Align(lipgloss.Center, lipgloss.Center).
+		Background(lighterBlack).
 		Foreground(mutedWhite).
 		Border(lipgloss.NormalBorder(), true).
-		BorderForeground(mutedWhite)
+		BorderForeground(mutedWhite).
+		BorderBackground(lighterBlack)
 
 	shuffleButton := zone.Mark(
 		shuffleButtonCopy,
@@ -188,7 +207,10 @@ func (m Model) viewActions() string {
 
 	deselectAllButton := zone.Mark(
 		deselectAllButtonCopy,
-		buttonBaseStyle.Copy().Render(deselectAllButtonCopy),
+		buttonBaseStyle.Copy().
+			Margin(0, 2).
+			MarginBackground(lighterBlack).
+			Render(deselectAllButtonCopy),
 	)
 
 	submitButton := zone.Mark(

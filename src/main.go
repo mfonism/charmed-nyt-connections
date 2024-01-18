@@ -95,7 +95,7 @@ func initialModel() Model {
 			members: map[string]struct{}{
 				"Zen":    {},
 				"Quokka": {},
-				"Raven":  {},
+				"Foxen":  {},
 				"Kraken": {},
 			},
 		},

@@ -47,15 +47,21 @@ func main() {
 
 type Model struct {
 	board             [][]string
+	groups            []Group
 	selectedTiles     map[string]struct{}
 	mistakesRemaining int
+}
+
+type Group struct {
+	clue    string
+	members map[string]struct{}
 }
 
 func initialModel() Model {
 	return Model{
 		board: [][]string{
 			{
-				"Roc",
+				"Julia",
 				"Ruby",
 				"Crystal",
 				"Python",
@@ -69,7 +75,7 @@ func initialModel() Model {
 			{
 				"Elm",
 				"Haskell",
-				"Agda",
+				"Idris",
 				"Miranda",
 			},
 			{
@@ -77,6 +83,44 @@ func initialModel() Model {
 				"Quokka",
 				"Raven",
 				"Kraken",
+			},
+		},
+		groups: []Group{
+			{
+				clue: "Multi-paradigm programming languages.",
+				members: map[string]struct{}{
+					"Julia":   {},
+					"Ruby":    {},
+					"Crystal": {},
+					"Python":  {},
+				},
+			},
+			{
+				clue: "Web development frameworks.",
+				members: map[string]struct{}{
+					"Rails":   {},
+					"Django":  {},
+					"Phoenix": {},
+					"Servant": {},
+				},
+			},
+			{
+				clue: "Statically-typed, pure-FP languages.",
+				members: map[string]struct{}{
+					"Elm":     {},
+					"Haskell": {},
+					"Idris":   {},
+					"Miranda": {},
+				},
+			},
+			{
+				clue: "NRI ENG teams.",
+				members: map[string]struct{}{
+					"Zen":    {},
+					"Quokka": {},
+					"Raven":  {},
+					"Kraken": {},
+				},
 			},
 		},
 		mistakesRemaining: 4,
@@ -267,3 +311,10 @@ func (m *Model) shuffleBoard() {
 func (m *Model) deselectAll() {
 	m.selectedTiles = nil
 }
+
+// func (m *Model) checkSelection() bool {
+// 	return len(m.board) == 0 ||
+// 		(len(m.selectedTiles) == len(m.board[0]) &&
+// 			slices.ContainsFunc(m.groupings)
+// 		)
+// }

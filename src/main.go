@@ -28,6 +28,12 @@ var (
 	shuffleButtonCopy     = "Shuffle"
 	deselectAllButtonCopy = "Deselect All"
 	submitButtonCopy      = "Submit"
+
+	yellow = lipgloss.Color("#F9DF6D")
+	green = lipgloss.Color("#A0C35A")
+	blue = lipgloss.Color("#B0C4EF")
+	purple = lipgloss.Color("#F9DF6D")
+	red = lipgloss.Color("#ff6767")
 )
 
 func main() {
@@ -59,6 +65,7 @@ type Model struct {
 type WordGroup struct {
 	clue    string
 	members map[string]struct{}
+	color   string
 }
 
 func initialModel() Model {
@@ -71,6 +78,7 @@ func initialModel() Model {
 				"Crystal": {},
 				"Python":  {},
 			},
+			color: "green",
 		},
 		{
 			clue: "Web development frameworks.",
@@ -80,6 +88,7 @@ func initialModel() Model {
 				"Phoenix": {},
 				"Servant": {},
 			},
+			color: "blue",
 		},
 		{
 			clue: "Statically-typed, pure-FP languages.",
@@ -89,6 +98,7 @@ func initialModel() Model {
 				"Idris":   {},
 				"Miranda": {},
 			},
+			color: "yellow",
 		},
 		{
 			clue: "NRI ENG teams.",
@@ -98,6 +108,7 @@ func initialModel() Model {
 				"Foxen":  {},
 				"Kraken": {},
 			},
+			color: "purple",
 		},
 	}
 

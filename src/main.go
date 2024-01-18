@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"hash/maphash"
 	"log"
+	"math/rand"
 	"os"
 	"runtime/debug"
 
@@ -96,6 +98,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Button == tea.MouseButtonLeft &&
 			msg.Action == tea.MouseActionPress {
 
+		checkPressedCell:
 			for _, row := range m.board {
 				for _, cellData := range row {
 					if zone.Get(cellData).InBounds(msg) {
@@ -108,8 +111,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						} else if len(m.selectedTiles) < 4 {
 							m.selectedTiles[cellData] = struct{}{}
 						}
+
+						break checkPressedCell
 					}
 				}
+			}
+
+			if zone.Get(shuffleButtonCopy).InBounds(msg) {
+				m.board = m.shuffledBoard()
 			}
 
 			return m, nil
@@ -219,4 +228,30 @@ func (m Model) viewActions() string {
 	)
 
 	return lipgloss.JoinHorizontal(lipgloss.Center, shuffleButton, deselectAllButton, submitButton)
+}
+
+func (m Model) shuffledBoard() [][]string {
+	flattened := make([]string, len(m.board)*len(m.board[0]))
+	for rowIndex, row := range m.board {
+		for cellIndex, cellData := range row {
+			flatIndex := (rowIndex * len(m.board)) + cellIndex
+			flattened[flatIndex] = cellData
+		}
+	}
+
+	generator := rand.New(rand.NewSource(int64(new(maphash.Hash).Sum64())))
+	generator.Shuffle(len(flattened), func(i, j int) {
+		flattened[i], flattened[j] = flattened[j], flattened[i]
+	})
+
+	newBoard := make([][]string, len(m.board))
+	for rowIndex := 0; rowIndex < len(newBoard); rowIndex++ {
+		newBoard[rowIndex] = make([]string, len(m.board[0]))
+		for cellIndex := 0; cellIndex < len(newBoard[rowIndex]); cellIndex++ {
+			flatIndex := (rowIndex * len(newBoard)) + cellIndex
+			newBoard[rowIndex][cellIndex] = flattened[flatIndex]
+		}
+	}
+
+	return newBoard
 }

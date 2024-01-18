@@ -93,7 +93,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "q", "Q":
 			return m, tea.Quit
+		case "h", "H":
+			m.board = m.shuffledBoard()
+			return m, nil
 		}
+
 	case tea.MouseMsg:
 		if msg.Button == tea.MouseButtonLeft &&
 			msg.Action == tea.MouseActionPress {

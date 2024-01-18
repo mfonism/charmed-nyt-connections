@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"hash/maphash"
 	"log"
+	"maps"
+	"math"
 	"math/rand"
 	"os"
 	"runtime/debug"
+	"slices"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -49,6 +52,7 @@ type Model struct {
 	wordGroups        []WordGroup
 	board             [][]string
 	selectedTiles     map[string]struct{}
+	revealedGroups    []WordGroup
 	mistakesRemaining int
 }
 
@@ -131,6 +135,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "backspace":
 			m.deselectAll()
 			return m, nil
+		case "enter":
+			m.submit()
+			return m, nil
 		}
 
 	case tea.MouseMsg:
@@ -160,6 +167,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if zone.Get(deselectAllButtonCopy).InBounds(msg) {
 				m.deselectAll()
+				return m, nil
+			}
+
+			if zone.Get(submitButtonCopy).InBounds(msg) {
+				m.submit()
 				return m, nil
 			}
 		}
@@ -271,38 +283,87 @@ func (m Model) viewActions() string {
 }
 
 func (m *Model) shuffleBoard() {
-	flattened := make([]string, len(m.board)*len(m.board[0]))
-	for rowIndex, row := range m.board {
-		for cellIndex, cellData := range row {
-			flatIndex := (rowIndex * len(m.board)) + cellIndex
-			flattened[flatIndex] = cellData
-		}
-	}
-
-	generator := rand.New(rand.NewSource(int64(new(maphash.Hash).Sum64())))
-	generator.Shuffle(len(flattened), func(i, j int) {
-		flattened[i], flattened[j] = flattened[j], flattened[i]
-	})
-
-	newBoard := make([][]string, len(m.board))
-	for rowIndex := 0; rowIndex < len(newBoard); rowIndex++ {
-		newBoard[rowIndex] = make([]string, len(m.board[0]))
-		for cellIndex := 0; cellIndex < len(newBoard[rowIndex]); cellIndex++ {
-			flatIndex := (rowIndex * len(newBoard)) + cellIndex
-			newBoard[rowIndex][cellIndex] = flattened[flatIndex]
-		}
-	}
-
-	m.board = newBoard
+	flattened := flatten(m.board)
+	shuffle(flattened)
+	m.board = unflatten(flattened, len(m.board))
 }
 
 func (m *Model) deselectAll() {
 	m.selectedTiles = nil
 }
 
-// func (m *Model) checkSelection() bool {
-// 	return len(m.board) == 0 ||
-// 		(len(m.selectedTiles) == len(m.board[0]) &&
-// 			slices.ContainsFunc(m.groupings)
-// 		)
-// }
+func (m *Model) submit() {
+	if m.canSubmit() {
+		m.doSubmit()
+	}
+}
+
+func (m Model) canSubmit() bool {
+	// can submit only if all the following hold
+	// * has chances left
+	// * has stuff left on the board
+	// * has made enough selections on the board
+	return m.mistakesRemaining > 0 &&
+		len(m.board) > 0 &&
+		len(m.selectedTiles) == len(m.board[0])
+}
+
+func (m *Model) doSubmit() {
+	for _, group := range m.wordGroups {
+		if maps.Equal(group.members, m.selectedTiles) {
+			m.revealedGroups = append(m.revealedGroups, group)
+
+			// remove selected items from board
+			flattened := flatten(m.board)
+			flattened = slices.DeleteFunc(flattened, func(data string) bool {
+				_, isSelected := m.selectedTiles[data]
+				return isSelected
+			})
+
+			m.board = unflatten(flattened, len(m.board) - 1)
+
+			m.deselectAll()
+			return
+		}
+	}
+
+	m.mistakesRemaining -= 1
+}
+
+func flatten(matrix [][]string) []string {
+	flattened := make([]string, len(matrix)*len(matrix[0]))
+
+	flatIndex := 0
+	for _, row := range matrix {
+		for _, cellData := range row {
+			flattened[flatIndex] = cellData
+			flatIndex += 1
+		}
+	}
+
+	return flattened
+}
+
+func shuffle(slice []string) {
+	generator := rand.New(rand.NewSource(int64(new(maphash.Hash).Sum64())))
+	generator.Shuffle(len(slice), func(i, j int) {
+		slice[i], slice[j] = slice[j], slice[i]
+	})
+}
+
+func unflatten(slice []string, numRows int) [][]string {
+	numCols := int(math.Trunc(float64(len(slice) / numRows)))
+	matrix := make([][]string, numRows)
+
+	flatIndex := 0
+	for rowIndex := 0; rowIndex < len(matrix); rowIndex++ {
+		matrix[rowIndex] = make([]string, numCols)
+		for cellIndex := 0; cellIndex < len(matrix[rowIndex]); cellIndex++ {
+			matrix[rowIndex][cellIndex] = slice[flatIndex]
+			flatIndex += 1
+		}
+	}
+
+	return matrix
+}
+

@@ -99,10 +99,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.MouseMsg:
-		if msg.Button == tea.MouseButtonLeft &&
-			msg.Action == tea.MouseActionPress {
-
-		checkPressedCell:
+		if msg.Button == tea.MouseButtonLeft && msg.Action == tea.MouseActionPress {
 			for _, row := range m.board {
 				for _, cellData := range row {
 					if zone.Get(cellData).InBounds(msg) {
@@ -116,19 +113,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							m.selectedTiles[cellData] = struct{}{}
 						}
 
-						break checkPressedCell
+						return m, nil
 					}
 				}
 			}
 
 			if zone.Get(shuffleButtonCopy).InBounds(msg) {
 				m.board = m.shuffledBoard()
+				return m, nil
 			}
-
-			return m, nil
 		}
-
 	}
+
 	return m, nil
 }
 

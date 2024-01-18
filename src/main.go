@@ -356,9 +356,9 @@ func unflatten(slice []string, numRows int) [][]string {
 	matrix := make([][]string, numRows)
 
 	flatIndex := 0
-	for rowIndex := 0; rowIndex < len(matrix); rowIndex++ {
+	for rowIndex := range matrix {
 		matrix[rowIndex] = make([]string, numCols)
-		for cellIndex := 0; cellIndex < len(matrix[rowIndex]); cellIndex++ {
+		for cellIndex := range matrix[rowIndex] {
 			matrix[rowIndex][cellIndex] = slice[flatIndex]
 			flatIndex += 1
 		}

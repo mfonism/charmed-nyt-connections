@@ -96,6 +96,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "h", "H":
 			m.shuffleBoard()
 			return m, nil
+		case "backspace":
+			m.deselectAll()
+			return m, nil
 		}
 
 	case tea.MouseMsg:
@@ -120,6 +123,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if zone.Get(shuffleButtonCopy).InBounds(msg) {
 				m.shuffleBoard()
+				return m, nil
+			}
+
+			if zone.Get(deselectAllButtonCopy).InBounds(msg) {
+				m.deselectAll()
 				return m, nil
 			}
 		}
@@ -254,4 +262,8 @@ func (m *Model) shuffleBoard() {
 	}
 
 	m.board = newBoard
+}
+
+func (m *Model) deselectAll() {
+	m.selectedTiles = nil
 }

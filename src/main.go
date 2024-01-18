@@ -94,7 +94,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q", "Q":
 			return m, tea.Quit
 		case "h", "H":
-			m.board = m.shuffledBoard()
+			m.shuffleBoard()
 			return m, nil
 		}
 
@@ -119,7 +119,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if zone.Get(shuffleButtonCopy).InBounds(msg) {
-				m.board = m.shuffledBoard()
+				m.shuffleBoard()
 				return m, nil
 			}
 		}
@@ -230,7 +230,7 @@ func (m Model) viewActions() string {
 	return lipgloss.JoinHorizontal(lipgloss.Center, shuffleButton, deselectAllButton, submitButton)
 }
 
-func (m Model) shuffledBoard() [][]string {
+func (m *Model) shuffleBoard() {
 	flattened := make([]string, len(m.board)*len(m.board[0]))
 	for rowIndex, row := range m.board {
 		for cellIndex, cellData := range row {
@@ -253,5 +253,5 @@ func (m Model) shuffledBoard() [][]string {
 		}
 	}
 
-	return newBoard
+	m.board = newBoard
 }

@@ -221,9 +221,10 @@ func (m Model) viewRevealedGroups() string {
 	}
 
 	cellBaseStyle := lipgloss.NewStyle().
-		Height(3).
+		Height(2).
 		Width(14).
-		Align(lipgloss.Center, lipgloss.Center)
+		Bold(true).
+		Align(lipgloss.Center, lipgloss.Bottom)
 
 	rows := make([]string, len(m.revealedGroups))
 	for groupIndex, group := range m.revealedGroups{
@@ -237,10 +238,6 @@ func (m Model) viewRevealedGroups() string {
 		}
 		slices.Sort(revealedWords)
 
-		for _, revealedData := range revealedWords {
-			row = append(row, cellBaseStyle.Copy().Render(revealedData))
-		}
-
 		var rowColor lipgloss.Color
 		switch group.color {
 		case "yellow":
@@ -253,12 +250,27 @@ func (m Model) viewRevealedGroups() string {
 			rowColor = purple
 		}
 
+		for _, revealedData := range revealedWords {
+			row = append(
+				row,
+				cellBaseStyle.Copy().
+					Background(rowColor).
+					Foreground(black).
+					Render(revealedData),
+			)
+		}
+
 		rows[groupIndex] = lipgloss.NewStyle().
 			Background(rowColor).
-			Foreground(mutedBlack).
-			Padding(0, 3).
+			Padding(0, 3, 1).
 			MarginBottom(1).
-			Render(lipgloss.JoinHorizontal(lipgloss.Center, row...))
+			Render(
+				lipgloss.JoinVertical(
+					lipgloss.Center,
+					lipgloss.JoinHorizontal(lipgloss.Center, row...),
+					group.clue,
+				),
+			)
 	}
 
 	return lipgloss.NewStyle().

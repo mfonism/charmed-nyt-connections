@@ -228,7 +228,16 @@ func (m Model) viewRevealedGroups() string {
 	rows := make([]string, len(m.revealedGroups))
 	for groupIndex, group := range m.revealedGroups{
 		row := make([]string, 0, len(group.members))
-		for revealedData := range group.members {
+
+		// sort the revealed words before adding them to display to ensure they're
+		// shown in the same order with every screen refresh
+		revealedWords := make([]string, 0, len(group.members))
+		for word := range group.members {
+			revealedWords = append(revealedWords, word)
+		}
+		slices.Sort(revealedWords)
+
+		for _, revealedData := range revealedWords {
 			row = append(row, cellBaseStyle.Copy().Render(revealedData))
 		}
 
@@ -261,7 +270,7 @@ func (m Model) viewBoard() string {
 	if len(m.board) == 0 {
 		return ""
 	}
-	
+
 	cellBaseStyle := lipgloss.NewStyle().
 		Height(3).
 		Width(14).

@@ -422,6 +422,12 @@ func (m *Model) doSubmit() {
 		if maps.Equal(group.members, m.selectedTiles) {
 			m.revealedGroups = append(m.revealedGroups, group)
 
+			if len(m.board) <= 1 {
+				m.board = [][]string{}
+				m.deselectAll()
+				return
+			}
+
 			// remove selected items from board
 			flattened := flatten(m.board)
 			flattened = slices.DeleteFunc(flattened, func(data string) bool {
@@ -440,6 +446,10 @@ func (m *Model) doSubmit() {
 }
 
 func flatten(matrix [][]string) []string {
+	if len(matrix) == 1 {
+		return matrix[0]
+	}
+
 	flattened := make([]string, len(matrix)*len(matrix[0]))
 
 	flatIndex := 0
@@ -461,6 +471,10 @@ func shuffle(slice []string) {
 }
 
 func unflatten(slice []string, numRows int) [][]string {
+	if numRows <= 0 {
+		return [][]string{}
+	}
+
 	numCols := int(math.Trunc(float64(len(slice) / numRows)))
 	matrix := make([][]string, numRows)
 

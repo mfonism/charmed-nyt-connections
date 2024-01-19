@@ -216,6 +216,10 @@ func (m Model) viewHeader() string {
 }
 
 func (m Model) viewRevealedGroups() string {
+	if len(m.revealedGroups) == 0 {
+		return ""
+	}
+
 	cellBaseStyle := lipgloss.NewStyle().
 		Height(3).
 		Width(14).
@@ -254,6 +258,10 @@ func (m Model) viewRevealedGroups() string {
 }
 
 func (m Model) viewBoard() string {
+	if len(m.board) == 0 {
+		return ""
+	}
+	
 	cellBaseStyle := lipgloss.NewStyle().
 		Height(3).
 		Width(14).

@@ -200,6 +200,7 @@ func (m Model) View() string {
 				lipgloss.JoinVertical(
 					lipgloss.Center,
 					m.viewHeader(),
+					m.viewRevealedGroups(),
 					m.viewBoard(),
 					m.viewMistakesRemaining(),
 					m.viewActions(),
@@ -212,6 +213,44 @@ func (m Model) viewHeader() string {
 	return lipgloss.NewStyle().
 		Margin(1, 0, 2).
 		Render("Create four groups of four!")
+}
+
+func (m Model) viewRevealedGroups() string {
+	cellBaseStyle := lipgloss.NewStyle().
+		Height(3).
+		Width(14).
+		Align(lipgloss.Center, lipgloss.Center)
+
+	rows := make([]string, len(m.revealedGroups))
+	for groupIndex, group := range m.revealedGroups{
+		row := make([]string, 0, len(group.members))
+		for revealedData := range group.members {
+			row = append(row, cellBaseStyle.Copy().Render(revealedData))
+		}
+
+		var rowColor lipgloss.Color
+		switch group.color {
+		case "yellow":
+			rowColor = yellow
+		case "green":
+			rowColor = green
+		case "blue":
+			rowColor = blue
+		case "purple":
+			rowColor = purple
+		}
+
+		rows[groupIndex] = lipgloss.NewStyle().
+			Background(rowColor).
+			Foreground(mutedBlack).
+			Padding(0, 3).
+			MarginBottom(1).
+			Render(lipgloss.JoinHorizontal(lipgloss.Center, row...))
+	}
+
+	return lipgloss.NewStyle().
+		MarginBottom(1).
+		Render(lipgloss.JoinVertical(lipgloss.Center, rows...))
 }
 
 func (m Model) viewBoard() string {

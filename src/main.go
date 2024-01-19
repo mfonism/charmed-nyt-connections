@@ -17,12 +17,12 @@ import (
 )
 
 var (
-	black = lipgloss.Color("#000000")
+	black                  = lipgloss.Color("#000000")
 	mutedBlack             = lipgloss.Color("#161616")
 	lighterBlack           = lipgloss.Color("#202020")
 	white                  = lipgloss.Color("#FFFFFF")
-	mutedWhite             = lipgloss.Color("#E0E0E0"    )
-	disabledGrey = lipgloss.Color("#363636")
+	mutedWhite             = lipgloss.Color("#E0E0E0")
+	disabledGrey           = lipgloss.Color("#363636")
 	disabledGreyForeground = lipgloss.Color("#222222")
 	selectedCellBackground = lipgloss.Color("#A9A9A9")
 	selectedCellForeground = lipgloss.Color("#DCDCDC")
@@ -32,10 +32,10 @@ var (
 	submitButtonCopy      = "Submit"
 
 	yellow = lipgloss.Color("#F9DF6D")
-	green = lipgloss.Color("#A0C35A")
-	blue = lipgloss.Color("#B0C4EF")
+	green  = lipgloss.Color("#A0C35A")
+	blue   = lipgloss.Color("#B0C4EF")
 	purple = lipgloss.Color("#BA81C5")
-	red = lipgloss.Color("#FF6767")
+	red    = lipgloss.Color("#FF6767")
 )
 
 func main() {
@@ -229,7 +229,7 @@ func (m Model) viewRevealedGroups() string {
 		Align(lipgloss.Center, lipgloss.Bottom)
 
 	rows := make([]string, len(m.revealedGroups))
-	for groupIndex, group := range m.revealedGroups{
+	for groupIndex, group := range m.revealedGroups {
 		row := make([]string, 0, len(group.members))
 
 		// sort the revealed words before adding them to display to ensure they're
@@ -429,7 +429,7 @@ func (m *Model) doSubmit() {
 				return isSelected
 			})
 
-			m.board = unflatten(flattened, len(m.board) - 1)
+			m.board = unflatten(flattened, len(m.board)-1)
 
 			m.deselectAll()
 			return
@@ -475,4 +475,3 @@ func unflatten(slice []string, numRows int) [][]string {
 
 	return matrix
 }
-

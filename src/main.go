@@ -17,11 +17,13 @@ import (
 )
 
 var (
-	black                  = lipgloss.Color("#000000")
+	black = lipgloss.Color("#000000")
 	mutedBlack             = lipgloss.Color("#161616")
 	lighterBlack           = lipgloss.Color("#202020")
 	white                  = lipgloss.Color("#FFFFFF")
-	mutedWhite             = lipgloss.Color("#E0E0E0")
+	mutedWhite             = lipgloss.Color("#E0E0E0"    )
+	disabledGrey = lipgloss.Color("#363636")
+	disabledGreyForeground = lipgloss.Color("#222222")
 	selectedCellBackground = lipgloss.Color("#A9A9A9")
 	selectedCellForeground = lipgloss.Color("#DCDCDC")
 
@@ -334,28 +336,56 @@ func (m Model) viewActions() string {
 	buttonBaseStyle := lipgloss.NewStyle().
 		Width(14).
 		Align(lipgloss.Center, lipgloss.Center).
+		BorderBackground(lighterBlack)
+
+	enabledButtonStyle := buttonBaseStyle.Copy().
 		Background(lighterBlack).
 		Foreground(mutedWhite).
 		Border(lipgloss.NormalBorder(), true).
-		BorderForeground(mutedWhite).
-		BorderBackground(lighterBlack)
+		BorderForeground(mutedWhite)
+
+	disabledButtonStyle := buttonBaseStyle.Copy().
+		Background(lighterBlack).
+		Foreground(disabledGreyForeground).
+		Border(lipgloss.NormalBorder(), true).
+		BorderForeground(disabledGrey)
+
+	var shuffleButtonStyle, deselectAllButtonStyle, submitButtonStyle lipgloss.Style
+
+	if len(m.board) == 0 {
+		shuffleButtonStyle = disabledButtonStyle.Copy()
+	} else {
+		shuffleButtonStyle = enabledButtonStyle.Copy()
+	}
 
 	shuffleButton := zone.Mark(
 		shuffleButtonCopy,
-		buttonBaseStyle.Copy().Render(shuffleButtonCopy),
+		shuffleButtonStyle.Render(shuffleButtonCopy),
 	)
+
+	if len(m.selectedTiles) == 0 {
+		deselectAllButtonStyle = disabledButtonStyle.Copy()
+	} else {
+		deselectAllButtonStyle = enabledButtonStyle.Copy()
+	}
 
 	deselectAllButton := zone.Mark(
 		deselectAllButtonCopy,
-		buttonBaseStyle.Copy().
+		deselectAllButtonStyle.
 			Margin(0, 2).
 			MarginBackground(lighterBlack).
 			Render(deselectAllButtonCopy),
 	)
 
+	if !m.canSubmit() {
+		submitButtonStyle = disabledButtonStyle.Copy()
+	} else {
+		submitButtonStyle = enabledButtonStyle.Copy()
+	}
+
 	submitButton := zone.Mark(
 		shuffleButtonCopy,
-		buttonBaseStyle.Copy().Render(submitButtonCopy),
+		submitButtonStyle.Render(submitButtonCopy),
 	)
 
 	return lipgloss.JoinHorizontal(lipgloss.Center, shuffleButton, deselectAllButton, submitButton)

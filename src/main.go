@@ -32,8 +32,8 @@ var (
 	yellow = lipgloss.Color("#F9DF6D")
 	green = lipgloss.Color("#A0C35A")
 	blue = lipgloss.Color("#B0C4EF")
-	purple = lipgloss.Color("#F9DF6D")
-	red = lipgloss.Color("#ff6767")
+	purple = lipgloss.Color("#BA81C5")
+	red = lipgloss.Color("#FF6767")
 )
 
 func main() {

@@ -17,15 +17,17 @@ import (
 )
 
 var (
-	black                  = lipgloss.Color("#000000")
-	mutedBlack             = lipgloss.Color("#161616")
-	lighterBlack           = lipgloss.Color("#202020")
-	white                  = lipgloss.Color("#FFFFFF")
-	mutedWhite             = lipgloss.Color("#E0E0E0")
-	disabledGrey           = lipgloss.Color("#363636")
-	disabledGreyForeground = lipgloss.Color("#222222")
-	selectedCellBackground = lipgloss.Color("#A9A9A9")
-	selectedCellForeground = lipgloss.Color("#DCDCDC")
+	black                         = lipgloss.Color("#000000")
+	mutedBlack                    = lipgloss.Color("#161616")
+	lighterBlack                  = lipgloss.Color("#202020")
+	white                         = lipgloss.Color("#FFFFFF")
+	mutedWhite                    = lipgloss.Color("#E0E0E0")
+	disabledGrey                  = lipgloss.Color("#363636")
+	disabledGreyForeground        = lipgloss.Color("#222222")
+	selectedCellBackground        = lipgloss.Color("#A9A9A9")
+	selectedCellForeground        = lipgloss.Color("#DCDCDC")
+	alreadySelectedCellForeground = lipgloss.Color("#F60D94")
+	alreadySelectedCellBackground = lipgloss.Color("#F8CCE6")
 
 	shuffleButtonCopy     = "Shuffle"
 	deselectAllButtonCopy = "Deselect All"
@@ -35,7 +37,6 @@ var (
 	green  = lipgloss.Color("#A0C35A")
 	blue   = lipgloss.Color("#B0C4EF")
 	purple = lipgloss.Color("#BA81C5")
-	red    = lipgloss.Color("#FF6767")
 )
 
 func main() {
@@ -60,6 +61,7 @@ type Model struct {
 	wordGroups        []WordGroup
 	board             [][]string
 	selectedTiles     map[string]struct{}
+	selectionHistory  []map[string]struct{}
 	revealedGroups    []WordGroup
 	mistakesRemaining int
 }
@@ -294,6 +296,8 @@ func (m Model) viewBoard() string {
 	cellMarginTopVal := 1
 	cellMarginLeftVal := 2
 
+	selectionIsCompleteButAlreadySeen := len(m.selectedTiles) == len(m.board[0]) && m.selectedTilesInHistory()
+
 	readyBoard := make([]string, len(m.board))
 
 	for rowIndex, row := range m.board {
@@ -312,7 +316,11 @@ func (m Model) viewBoard() string {
 			}
 
 			if _, isSelected := m.selectedTiles[cellData]; isSelected {
-				cellStyle.Background(mutedWhite).Foreground(mutedBlack)
+				if selectionIsCompleteButAlreadySeen {
+					cellStyle.Background(alreadySelectedCellBackground).Foreground(alreadySelectedCellForeground)
+				} else {
+					cellStyle.Background(mutedWhite).Foreground(mutedBlack)
+				}
 			} else {
 				cellStyle.Background(mutedBlack).Foreground(mutedWhite)
 			}
@@ -412,12 +420,26 @@ func (m Model) canSubmit() bool {
 	// * has chances left
 	// * has stuff left on the board
 	// * has made enough selections on the board
+	// * has NOT made the same selections before
 	return m.mistakesRemaining > 0 &&
 		len(m.board) > 0 &&
-		len(m.selectedTiles) == len(m.board[0])
+		len(m.selectedTiles) == len(m.board[0]) &&
+		!m.selectedTilesInHistory()
+}
+
+func (m Model) selectedTilesInHistory() bool {
+	for _, seenSelection := range m.selectionHistory {
+		if maps.Equal(m.selectedTiles, seenSelection) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (m *Model) doSubmit() {
+	m.selectionHistory = append(m.selectionHistory, maps.Clone(m.selectedTiles))
+
 	for _, group := range m.wordGroups {
 		if maps.Equal(group.members, m.selectedTiles) {
 			m.revealedGroups = append(m.revealedGroups, group)

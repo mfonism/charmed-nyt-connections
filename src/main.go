@@ -480,8 +480,10 @@ func (m *Model) doSubmit() {
 }
 
 func flatten(matrix [][]string) []string {
-	if len(matrix) == 1 {
-		return matrix[0]
+	if len(matrix) == 0 {
+		return []string{}
+	} else if len(matrix) == 1 {
+		return append([]string(nil), matrix[0]...)
 	}
 
 	flattened := make([]string, len(matrix)*len(matrix[0]))

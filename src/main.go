@@ -198,7 +198,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	return zone.Scan(
 		lipgloss.NewStyle().
-			Padding(2, 6, 2).
+			Padding(2, 6, 3).
 			Background(lighterBlack).
 			Render(
 				lipgloss.JoinVertical(
@@ -215,7 +215,9 @@ func (m Model) View() string {
 
 func (m Model) viewHeader() string {
 	return lipgloss.NewStyle().
-		Margin(1, 0, 2).
+		Width(62).
+		MarginTop(2).
+		Align(lipgloss.Center, lipgloss.Center).
 		Render("Create four groups of four!")
 }
 
@@ -264,21 +266,24 @@ func (m Model) viewRevealedGroups() string {
 			)
 		}
 
-		rows[groupIndex] = lipgloss.NewStyle().
+		var rowStyle = lipgloss.NewStyle().
 			Background(rowColor).
-			Padding(0, 3, 1).
-			MarginBottom(1).
-			Render(
-				lipgloss.JoinVertical(
-					lipgloss.Center,
-					lipgloss.JoinHorizontal(lipgloss.Center, row...),
-					group.clue,
-				),
-			)
+			Padding(0, 3, 1)
+		if groupIndex != 0 {
+			rowStyle = rowStyle.Copy().MarginTop(1)
+		}
+
+		rows[groupIndex] = rowStyle.Render(
+			lipgloss.JoinVertical(
+				lipgloss.Center,
+				lipgloss.JoinHorizontal(lipgloss.Center, row...),
+				group.clue,
+			),
+		)
 	}
 
 	return lipgloss.NewStyle().
-		MarginBottom(1).
+		MarginTop(2).
 		Render(lipgloss.JoinVertical(lipgloss.Center, rows...))
 }
 
@@ -331,12 +336,15 @@ func (m Model) viewBoard() string {
 		readyBoard[rowIndex] = lipgloss.JoinHorizontal(lipgloss.Center, readyRow...)
 	}
 
-	return lipgloss.JoinVertical(lipgloss.Center, readyBoard...)
+	return lipgloss.NewStyle().
+		MarginTop(2).
+		Render(lipgloss.JoinVertical(lipgloss.Center, readyBoard...))
 }
 
 func (m Model) viewMistakesRemaining() string {
 	return lipgloss.NewStyle().
-		Margin(2, 0).
+		MarginTop(2).
+		Align(lipgloss.Center, lipgloss.Bottom).
 		Render(fmt.Sprintf("Mistakes remaining: %d", m.mistakesRemaining))
 }
 
@@ -396,7 +404,11 @@ func (m Model) viewActions() string {
 		submitButtonStyle.Render(submitButtonCopy),
 	)
 
-	return lipgloss.JoinHorizontal(lipgloss.Center, shuffleButton, deselectAllButton, submitButton)
+	return lipgloss.NewStyle().
+		MarginTop(2).
+		Padding(0, 5).
+		Background(lighterBlack).
+		Render(lipgloss.JoinHorizontal(lipgloss.Center, shuffleButton, deselectAllButton, submitButton))
 }
 
 func (m *Model) shuffleBoard() {

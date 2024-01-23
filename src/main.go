@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"hash/maphash"
 	"log"
-	"maps"
 	"math"
 	"math/rand"
 	"os"
@@ -14,6 +13,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	zone "github.com/lrstanley/bubblezone"
+	"github.com/mfonism/charmed/connections/src/sets"
 )
 
 var (
@@ -60,72 +60,54 @@ func main() {
 type Model struct {
 	wordGroups        []WordGroup
 	board             [][]string
-	selectedTiles     map[string]struct{}
-	selectionHistory  []map[string]struct{}
+	selectedTiles     sets.Set[string]
+	selectionHistory  []sets.Set[string]
 	revealedGroups    []WordGroup
 	mistakesRemaining int
 }
 
 type WordGroup struct {
 	clue    string
-	members map[string]struct{}
+	members sets.Set[string]
 	color   string
 }
 
 func initialModel() Model {
 	wordGroups := []WordGroup{
 		{
-			clue: "Multi-paradigm programming languages.",
-			members: map[string]struct{}{
-				"Julia":   {},
-				"Ruby":    {},
-				"Crystal": {},
-				"Python":  {},
-			},
-			color: "green",
+			clue:    "Rivers of the world.",
+			members: sets.New("Amazon", "Nile", "Yangtze", "Danube"),
+			color:   "green",
 		},
 		{
-			clue: "Web development frameworks.",
-			members: map[string]struct{}{
-				"Rails":   {},
-				"Django":  {},
-				"Phoenix": {},
-				"Servant": {},
-			},
-			color: "blue",
+			clue:    "Fruits.",
+			members: sets.New("Star", "Apple", "Orange", "Kiwi"),
+			color:   "blue",
 		},
 		{
-			clue: "Statically-typed, pure-FP languages.",
-			members: map[string]struct{}{
-				"Elm":     {},
-				"Haskell": {},
-				"Idris":   {},
-				"Miranda": {},
-			},
-			color: "yellow",
+			clue:    "___ball",
+			members: sets.New("Basket", "Hand", "Base", "Foot"),
+			color:   "yellow",
 		},
 		{
-			clue: "NRI ENG teams.",
-			members: map[string]struct{}{
-				"Zen":    {},
-				"Quokka": {},
-				"Foxen":  {},
-				"Kraken": {},
-			},
-			color: "purple",
+			clue:    "OSI-approved Open Source licenses",
+			members: sets.New("MIT", "Apache", "Mozilla", "BSD"),
+			color:   "purple",
 		},
 	}
+	selectedTiles := sets.Empty[string]()
 
 	board := make([][]string, len(wordGroups))
 	for groupIndex, group := range wordGroups {
-		board[groupIndex] = make([]string, 0, len(group.members))
-		for word := range group.members {
+		board[groupIndex] = make([]string, 0, group.members.Size())
+		group.members.ForEach(func(word string) {
 			board[groupIndex] = append(board[groupIndex], word)
-		}
+		})
 	}
 
 	m := Model{
 		wordGroups:        wordGroups,
+		selectedTiles:     selectedTiles,
 		board:             board,
 		mistakesRemaining: 4,
 	}
@@ -160,14 +142,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			for _, row := range m.board {
 				for _, cellData := range row {
 					if zone.Get(cellData).InBounds(msg) {
-						if m.selectedTiles == nil {
-							m.selectedTiles = make(map[string]struct{})
-						}
-
-						if _, isAlreadySelected := m.selectedTiles[cellData]; isAlreadySelected {
-							delete(m.selectedTiles, cellData)
-						} else if len(m.selectedTiles) < 4 {
-							m.selectedTiles[cellData] = struct{}{}
+						if m.selectedTiles.Contains(cellData) {
+							m.selectedTiles.Remove(cellData)
+						} else if m.selectedTiles.Size() < 4 {
+							m.selectedTiles.Add(cellData)
 						}
 
 						return m, nil
@@ -234,14 +212,14 @@ func (m Model) viewRevealedGroups() string {
 
 	rows := make([]string, len(m.revealedGroups))
 	for groupIndex, group := range m.revealedGroups {
-		row := make([]string, 0, len(group.members))
+		row := make([]string, 0, group.members.Size())
 
 		// sort the revealed words before adding them to display to ensure they're
 		// shown in the same order with every screen refresh
-		revealedWords := make([]string, 0, len(group.members))
-		for word := range group.members {
+		revealedWords := make([]string, 0, group.members.Size())
+		group.members.ForEach(func(word string) {
 			revealedWords = append(revealedWords, word)
-		}
+		})
 		slices.Sort(revealedWords)
 
 		var rowColor lipgloss.Color
@@ -301,7 +279,7 @@ func (m Model) viewBoard() string {
 	cellMarginTopVal := 1
 	cellMarginLeftVal := 2
 
-	selectionIsCompleteButAlreadySeen := len(m.selectedTiles) == len(m.board[0]) && m.selectedTilesInHistory()
+	selectionIsCompleteButAlreadySeen := m.selectedTiles.Size() == len(m.board[0]) && m.selectedTilesInHistory()
 
 	readyBoard := make([]string, len(m.board))
 
@@ -320,7 +298,7 @@ func (m Model) viewBoard() string {
 				cellStyle.MarginLeft(cellMarginLeftVal)
 			}
 
-			if _, isSelected := m.selectedTiles[cellData]; isSelected {
+			if m.selectedTiles.Contains(cellData) {
 				if selectionIsCompleteButAlreadySeen {
 					cellStyle.Background(alreadySelectedCellBackground).Foreground(alreadySelectedCellForeground)
 				} else {
@@ -379,7 +357,7 @@ func (m Model) viewActions() string {
 		shuffleButtonStyle.Render(shuffleButtonCopy),
 	)
 
-	if len(m.selectedTiles) == 0 {
+	if m.selectedTiles.Size() == 0 {
 		deselectAllButtonStyle = disabledButtonStyle.Copy()
 	} else {
 		deselectAllButtonStyle = enabledButtonStyle.Copy()
@@ -418,7 +396,7 @@ func (m *Model) shuffleBoard() {
 }
 
 func (m *Model) deselectAll() {
-	m.selectedTiles = nil
+	m.selectedTiles.Clear()
 }
 
 func (m *Model) submit() {
@@ -435,13 +413,13 @@ func (m Model) canSubmit() bool {
 	// * has NOT made the same selections before
 	return m.mistakesRemaining > 0 &&
 		len(m.board) > 0 &&
-		len(m.selectedTiles) == len(m.board[0]) &&
+		m.selectedTiles.Size() == len(m.board[0]) &&
 		!m.selectedTilesInHistory()
 }
 
 func (m Model) selectedTilesInHistory() bool {
 	for _, seenSelection := range m.selectionHistory {
-		if maps.Equal(m.selectedTiles, seenSelection) {
+		if m.selectedTiles.Equals(&seenSelection) {
 			return true
 		}
 	}
@@ -450,10 +428,10 @@ func (m Model) selectedTilesInHistory() bool {
 }
 
 func (m *Model) doSubmit() {
-	m.selectionHistory = append(m.selectionHistory, maps.Clone(m.selectedTiles))
+	m.selectionHistory = append(m.selectionHistory, m.selectedTiles.Copy())
 
 	for _, group := range m.wordGroups {
-		if maps.Equal(group.members, m.selectedTiles) {
+		if group.members.Equals(&m.selectedTiles) {
 			m.revealedGroups = append(m.revealedGroups, group)
 
 			if len(m.board) <= 1 {
@@ -465,8 +443,7 @@ func (m *Model) doSubmit() {
 			// remove selected items from board
 			flattened := flatten(m.board)
 			flattened = slices.DeleteFunc(flattened, func(data string) bool {
-				_, isSelected := m.selectedTiles[data]
-				return isSelected
+				return m.selectedTiles.Contains(data)
 			})
 
 			m.board = unflatten(flattened, len(m.board)-1)

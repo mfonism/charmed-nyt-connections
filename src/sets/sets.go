@@ -1,6 +1,10 @@
 package sets
 
-import "maps"
+import (
+	"fmt"
+	"maps"
+	"strings"
+)
 
 type Set[T comparable] struct {
 	elements map[T]struct{}
@@ -63,4 +67,22 @@ func (s *Set[T]) Copy() Set[T] {
 	})
 
 	return res
+}
+
+func (s Set[T]) String() string {
+	b := strings.Builder{}
+	b.WriteString("{")
+
+	count := 0
+	size := s.Size()
+	for elt := range s.elements {
+		count += 1
+		b.WriteString(fmt.Sprint(elt))
+		if count < size {
+			b.WriteString(", ")
+		}
+	}
+
+	b.WriteString("}")
+	return b.String()
 }

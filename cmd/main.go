@@ -84,7 +84,7 @@ func initialModel() Model {
 			Green,
 		),
 		newWordGroup(
-			sets.New("Star", "Apple", "Orange", "Kiwi"),
+			sets.New("Plum", "Apple", "Orange", "Kiwi"),
 			"Fruits.",
 			Blue,
 		),

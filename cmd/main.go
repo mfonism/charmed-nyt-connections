@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"hash/maphash"
 	"log"
@@ -437,6 +438,9 @@ func (m *Model) doSubmit() {
 		group := &m.wordGroups[groupIndex]
 		if group.isUnrevealed() && group.members.Equals(&m.selectedTiles) {
 			group.makeRevealedByPlayer()
+			slices.SortStableFunc(m.wordGroups, func(wg1, wg2 WordGroup) int {
+				return cmp.Compare(wg1.unix, wg2.unix)
+			})
 
 			if len(m.board) <= 1 {
 				m.board = [][]string{}

@@ -353,7 +353,8 @@ func (m Model) viewActions() string {
 
 	var shuffleButtonStyle, deselectAllButtonStyle, submitButtonStyle lipgloss.Style
 
-	if len(m.board) == 0 {
+	// shuffle button
+	if len(m.board) == 0 || m.mistakesRemaining <= 0 {
 		shuffleButtonStyle = disabledButtonStyle.Copy()
 	} else {
 		shuffleButtonStyle = enabledButtonStyle.Copy()
@@ -364,7 +365,8 @@ func (m Model) viewActions() string {
 		shuffleButtonStyle.Render(shuffleButtonCopy),
 	)
 
-	if m.selectedTiles.Size() == 0 {
+	// deselect-all button
+	if m.selectedTiles.Size() == 0 || m.mistakesRemaining <= 0 {
 		deselectAllButtonStyle = disabledButtonStyle.Copy()
 	} else {
 		deselectAllButtonStyle = enabledButtonStyle.Copy()
@@ -378,6 +380,7 @@ func (m Model) viewActions() string {
 			Render(deselectAllButtonCopy),
 	)
 
+	// submit button
 	if !m.canSubmit() {
 		submitButtonStyle = disabledButtonStyle.Copy()
 	} else {
@@ -465,6 +468,12 @@ func (m *Model) doSubmit() {
 	}
 
 	m.mistakesRemaining -= 1
+
+	// leave this out until we can animate it, because, otherwise the user won't get to
+	// see that they're wrong before the selection is cleared
+	// if m.mistakesRemaining <= 0 {
+	// 	m.deselectAll()
+	// }
 }
 
 func flatten(matrix [][]string) []string {

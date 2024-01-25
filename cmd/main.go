@@ -454,9 +454,26 @@ func (m *Model) doSubmit() {
 		group := &m.wordGroups[groupIndex]
 		if group.isUnrevealed() && group.members.Equals(&m.selectedTiles) {
 			group.makeRevealedByPlayer()
+			// sort such that earliest revealed groups come first
+			// and unrevealed groups come last
 			slices.SortStableFunc(m.wordGroups, func(wg1, wg2 WordGroup) int {
+				if wg1.isUnrevealed() && wg2.isUnrevealed() {
+					return 0
+				}
+
+				if wg1.isUnrevealed() {
+					return 1
+				}
+
+				if wg2.isUnrevealed() {
+					return -1
+				}
+
 				return cmp.Compare(wg1.unix, wg2.unix)
 			})
+
+			log.Println(m.wordGroups)
+			log.Println()
 
 			if len(m.board) <= 1 {
 				m.board = [][]string{}

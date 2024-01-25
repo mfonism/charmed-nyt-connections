@@ -143,33 +143,39 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.MouseMsg:
 		if msg.Button == tea.MouseButtonLeft && msg.Action == tea.MouseActionPress {
-			for _, row := range m.board {
-				for _, cellData := range row {
-					if zone.Get(cellData).InBounds(msg) {
-						if m.selectedTiles.Contains(cellData) {
-							m.selectedTiles.Remove(cellData)
-						} else if m.selectedTiles.Size() < 4 {
-							m.selectedTiles.Add(cellData)
-						}
+			if m.mistakesRemaining > 0 {
+				// cells on the baord
+				for _, row := range m.board {
+					for _, cellData := range row {
+						if zone.Get(cellData).InBounds(msg) {
+							if m.selectedTiles.Contains(cellData) {
+								m.selectedTiles.Remove(cellData)
+							} else if m.selectedTiles.Size() < 4 {
+								m.selectedTiles.Add(cellData)
+							}
 
-						return m, nil
+							return m, nil
+						}
 					}
 				}
-			}
 
-			if zone.Get(shuffleButtonCopy).InBounds(msg) {
-				m.shuffleBoard()
-				return m, nil
-			}
+				// shuffle button
+				if zone.Get(shuffleButtonCopy).InBounds(msg) {
+					m.shuffleBoard()
+					return m, nil
+				}
 
-			if zone.Get(deselectAllButtonCopy).InBounds(msg) {
-				m.deselectAll()
-				return m, nil
-			}
+				// deselect-all button
+				if zone.Get(deselectAllButtonCopy).InBounds(msg) {
+					m.deselectAll()
+					return m, nil
+				}
 
-			if zone.Get(submitButtonCopy).InBounds(msg) {
-				m.submit()
-				return m, nil
+				// submit button
+				if zone.Get(submitButtonCopy).InBounds(msg) {
+					m.submit()
+					return m, nil
+				}
 			}
 		}
 	}

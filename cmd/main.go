@@ -147,8 +147,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.MouseMsg:
 		if msg.Button == tea.MouseButtonLeft && msg.Action == tea.MouseActionPress {
+			// cells on board
 			if m.mistakesRemaining > 0 {
-				// cells on the baord
 				for _, row := range m.board {
 					for _, cellData := range row {
 						if zone.Get(cellData).InBounds(msg) {
@@ -162,24 +162,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 					}
 				}
+			}
 
-				// shuffle button
-				if zone.Get(shuffleButtonCopy).InBounds(msg) {
-					m.shuffleBoard()
-					return m, nil
-				}
+			// shuffle
+			if m.mistakesRemaining > 0 && zone.Get(shuffleButtonCopy).InBounds(msg) {
+				m.shuffleBoard()
+				return m, nil
+			}
 
-				// deselect-all button
-				if zone.Get(deselectAllButtonCopy).InBounds(msg) {
-					m.deselectAll()
-					return m, nil
-				}
+			// submit
+			if m.mistakesRemaining > 0 && zone.Get(submitButtonCopy).InBounds(msg) {
+				m.submit()
+				return m, nil
+			}
 
-				// submit button
-				if zone.Get(submitButtonCopy).InBounds(msg) {
-					m.submit()
-					return m, nil
-				}
+			// deselect-all
+			if m.selectedTiles.Size() > 0 && zone.Get(deselectAllButtonCopy).InBounds(msg) {
+				m.deselectAll()
+				return m, nil
 			}
 		}
 	}

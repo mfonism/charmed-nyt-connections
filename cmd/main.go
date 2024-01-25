@@ -13,7 +13,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	zone "github.com/lrstanley/bubblezone"
-	"github.com/mfonism/charmed/connections/src/sets"
+	"github.com/mfonism/charmed/connections/internals/sets"
 )
 
 var (
@@ -47,6 +47,16 @@ func main() {
 		}
 	}()
 
+	if len(os.Getenv("DEBUG")) > 0 {
+		f, err := tea.LogToFile("debug.log", "debug")
+		if err != nil {
+			fmt.Println("fatal:", err)
+			os.Exit(1)
+		}
+
+		defer f.Close()
+	}
+
 	// initialize global manager for BubbleZone
 	zone.NewGlobal()
 
@@ -62,38 +72,31 @@ type Model struct {
 	board             [][]string
 	selectedTiles     sets.Set[string]
 	selectionHistory  []sets.Set[string]
-	revealedGroups    []WordGroup
 	mistakesRemaining int
-}
-
-type WordGroup struct {
-	clue    string
-	members sets.Set[string]
-	color   string
 }
 
 func initialModel() Model {
 	wordGroups := []WordGroup{
-		{
-			clue:    "Rivers of the world.",
-			members: sets.New("Amazon", "Nile", "Yangtze", "Danube"),
-			color:   "green",
-		},
-		{
-			clue:    "Fruits.",
-			members: sets.New("Star", "Apple", "Orange", "Kiwi"),
-			color:   "blue",
-		},
-		{
-			clue:    "___ball",
-			members: sets.New("Basket", "Hand", "Base", "Foot"),
-			color:   "yellow",
-		},
-		{
-			clue:    "OSI-approved Open Source licenses",
-			members: sets.New("MIT", "Apache", "Mozilla", "BSD"),
-			color:   "purple",
-		},
+		newWordGroup(
+			sets.New("Amazon", "Nile", "Yangtze", "Danube"),
+			"Rivers of the world.",
+			Green,
+		),
+		newWordGroup(
+			sets.New("Star", "Apple", "Orange", "Kiwi"),
+			"Fruits.",
+			Blue,
+		),
+		newWordGroup(
+			sets.New("Basket", "Hand", "Base", "Foot"),
+			"___ball",
+			Yellow,
+		),
+		newWordGroup(
+			sets.New("MIT", "Apache", "Mozilla", "BSD"),
+			"OSI-approved Open Source licenses",
+			Purple,
+		),
 	}
 	selectedTiles := sets.Empty[string]()
 
@@ -200,18 +203,18 @@ func (m Model) viewHeader() string {
 }
 
 func (m Model) viewRevealedGroups() string {
-	if len(m.revealedGroups) == 0 {
-		return ""
-	}
-
 	cellBaseStyle := lipgloss.NewStyle().
 		Height(2).
 		Width(14).
 		Bold(true).
 		Align(lipgloss.Center, lipgloss.Bottom)
 
-	rows := make([]string, len(m.revealedGroups))
-	for groupIndex, group := range m.revealedGroups {
+	rows := make([]string, 0)
+	for groupIndex, group := range m.wordGroups {
+		if group.isUnrevealed() {
+			continue
+		}
+
 		row := make([]string, 0, group.members.Size())
 
 		// sort the revealed words before adding them to display to ensure they're
@@ -224,13 +227,13 @@ func (m Model) viewRevealedGroups() string {
 
 		var rowColor lipgloss.Color
 		switch group.color {
-		case "yellow":
+		case Yellow:
 			rowColor = yellow
-		case "green":
+		case Green:
 			rowColor = green
-		case "blue":
+		case Blue:
 			rowColor = blue
-		case "purple":
+		case Purple:
 			rowColor = purple
 		}
 
@@ -251,13 +254,13 @@ func (m Model) viewRevealedGroups() string {
 			rowStyle = rowStyle.Copy().MarginTop(1)
 		}
 
-		rows[groupIndex] = rowStyle.Render(
+		rows = append(rows, rowStyle.Render(
 			lipgloss.JoinVertical(
 				lipgloss.Center,
 				lipgloss.JoinHorizontal(lipgloss.Center, row...),
 				group.clue,
 			),
-		)
+		))
 	}
 
 	return lipgloss.NewStyle().
@@ -430,9 +433,10 @@ func (m Model) selectedTilesInHistory() bool {
 func (m *Model) doSubmit() {
 	m.selectionHistory = append(m.selectionHistory, m.selectedTiles.Copy())
 
-	for _, group := range m.wordGroups {
-		if group.members.Equals(&m.selectedTiles) {
-			m.revealedGroups = append(m.revealedGroups, group)
+	for groupIndex := range m.wordGroups {
+		group := &m.wordGroups[groupIndex]
+		if group.isUnrevealed() && group.members.Equals(&m.selectedTiles) {
+			group.makeRevealedByPlayer()
 
 			if len(m.board) <= 1 {
 				m.board = [][]string{}

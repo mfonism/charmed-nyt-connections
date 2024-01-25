@@ -211,9 +211,12 @@ func (m Model) viewRevealedGroups() string {
 		Align(lipgloss.Center, lipgloss.Bottom)
 
 	rows := make([]string, 0)
-	for groupIndex, group := range m.wordGroups {
+	for groupIndex := range m.wordGroups {
+		group := &m.wordGroups[groupIndex]
 		if group.isUnrevealed() {
-			continue
+			// we are guaranteed to always have revealed groups coming first in the
+			//  list of word groups
+			break
 		}
 
 		row := make([]string, 0, group.members.Size())

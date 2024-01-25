@@ -131,13 +131,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q", "Q":
 			return m, tea.Quit
 		case "h", "H":
-			m.shuffleBoard()
+			if m.mistakesRemaining > 0 {
+				m.shuffleBoard()
+			}
 			return m, nil
 		case "backspace":
 			m.deselectAll()
 			return m, nil
 		case "enter":
-			m.submit()
+			if m.mistakesRemaining > 0 {
+				m.submit()
+			}
 			return m, nil
 		}
 

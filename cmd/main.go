@@ -33,6 +33,7 @@ var (
 	shuffleButtonCopy     = "Shuffle"
 	deselectAllButtonCopy = "Deselect All"
 	submitButtonCopy      = "Submit"
+	revealButtonCopy      = "Reveal All"
 
 	yellow = lipgloss.Color("#F9DF6D")
 	green  = lipgloss.Color("#A0C35A")
@@ -135,6 +136,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.shuffleBoard()
 			}
 			return m, nil
+		case " ":
+			if m.mistakesRemaining <= 0 && m.wordGroups[len(m.wordGroups)-1].isUnrevealed() {
+				m.revealRemaining()
+			}
+			return m, nil
 		case "backspace":
 			m.deselectAll()
 			return m, nil
@@ -181,6 +187,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.deselectAll()
 				return m, nil
 			}
+
+			// reveal remaining
+			if m.mistakesRemaining <= 0 && m.wordGroups[len(m.wordGroups)-1].isUnrevealed() && zone.Get(revealButtonCopy).InBounds(msg) {
+				m.revealRemaining()
+			}
+			return m, nil
 		}
 	}
 
@@ -369,12 +381,15 @@ func (m Model) viewActions() string {
 			revealButtonStyles = disabledButtonStyle.Copy()
 		}
 
-		return revealButtonStyles.
-			Width(60).
-			MarginTop(2).
-			Padding(0, 12).
-			Background(lighterBlack).
-			Render("Reveal Remaining")
+		return zone.Mark(
+			revealButtonCopy,
+			revealButtonStyles.
+				Width(60).
+				MarginTop(2).
+				Padding(0, 12).
+				Background(lighterBlack).
+				Render("Reveal Remaining"),
+		)
 	}
 
 	var shuffleButtonStyle, deselectAllButtonStyle, submitButtonStyle lipgloss.Style
@@ -514,6 +529,20 @@ func (m *Model) doSubmit() {
 	// if m.mistakesRemaining <= 0 {
 	// 	m.deselectAll()
 	// }
+}
+
+func (m *Model) revealRemaining() {
+	// log.Println(m)
+	for i := len(m.wordGroups) - 1; i >= 0; i-- {
+		if m.wordGroups[i].isUnrevealed() {
+			m.wordGroups[i].makeRevealedByComputer()
+		} else {
+			// rely on the guarantee that all unrevealed groups are at the tail of the list
+			break
+		}
+	}
+
+	m.board = [][]string{}
 }
 
 func flatten(matrix [][]string) []string {

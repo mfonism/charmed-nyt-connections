@@ -226,6 +226,10 @@ func (m Model) viewHeader() string {
 }
 
 func (m Model) viewRevealedGroups() string {
+	if m.wordGroups[0].isUnrevealed() {
+		return ""
+	}
+
 	cellBaseStyle := lipgloss.NewStyle().
 		Height(2).
 		Width(14).

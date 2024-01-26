@@ -361,6 +361,22 @@ func (m Model) viewActions() string {
 		Border(lipgloss.NormalBorder(), true).
 		BorderForeground(disabledGrey)
 
+	if m.mistakesRemaining <= 0 {
+		var revealButtonStyles lipgloss.Style
+		if m.wordGroups[len(m.wordGroups)-1].isUnrevealed() {
+			revealButtonStyles = enabledButtonStyle.Copy()
+		} else {
+			revealButtonStyles = disabledButtonStyle.Copy()
+		}
+
+		return revealButtonStyles.
+			Width(60).
+			MarginTop(2).
+			Padding(0, 12).
+			Background(lighterBlack).
+			Render("Reveal Remaining")
+	}
+
 	var shuffleButtonStyle, deselectAllButtonStyle, submitButtonStyle lipgloss.Style
 
 	// shuffle button
@@ -471,9 +487,6 @@ func (m *Model) doSubmit() {
 
 				return cmp.Compare(wg1.unix, wg2.unix)
 			})
-
-			log.Println(m.wordGroups)
-			log.Println()
 
 			if len(m.board) <= 1 {
 				m.board = [][]string{}

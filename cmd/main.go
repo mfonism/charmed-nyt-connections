@@ -489,7 +489,7 @@ func (m *Model) doSubmit() {
 			// and unrevealed groups come last
 			slices.SortStableFunc(m.wordGroups, func(wg1, wg2 WordGroup) int {
 				if wg1.isUnrevealed() && wg2.isUnrevealed() {
-					return 0
+					return cmp.Compare(wg1.color, wg2.color)
 				}
 
 				if wg1.isUnrevealed() {
